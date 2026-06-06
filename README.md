@@ -2,7 +2,7 @@
 
 Türk Valorant içerik üreticisi Cypher.Delisi.70'ün resmi web sitesi.
 
-🔗 [cypherdelisi70.github.io]
+🔗 [cypherdelisi70.github.io](https://cypherdelisi70.github.io)
 
 ## Kanal
 
