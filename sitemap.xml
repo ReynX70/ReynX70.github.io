@@ -1,35 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
   <url>
     <loc>https://cypherdelisi70.github.io/</loc>
-    <lastmod>2026-06-08</lastmod>
+    <lastmod>2026-06-08T15:58:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://yt3.ggpht.com/J-c2vaEN0zu5AwJ8V9B-NIxYCGoC3RRe2AT4JIMb31P-upYo8NcgBpeFu8GkssiccBlXBBKWPw=s800-c-k-c0x00ffffff-no-rj</image:loc>
+      <image:title>Cypher.Delisi.70 — Türk Valorant Kanalı</image:title>
+    </image:image>
+    <video:video>
+      <video:thumbnail_loc>https://i.ytimg.com/vi/cjpj666w1oU/maxresdefault.jpg</video:thumbnail_loc>
+      <video:title>Valorant Haven Taktik - En Popüler</video:title>
+      <video:description>Valorant Haven haritası için detaylı taktik rehberi</video:description>
+      <video:player_loc>https://www.youtube.com/embed/cjpj666w1oU</video:player_loc>
+    </video:video>
   </url>
   <url>
-    <loc>https://cypherdelisi70.github.io/#featured</loc>
-    <lastmod>2026-06-08</lastmod>
-    <changefreq>daily</changefreq>
+    <loc>https://www.youtube.com/watch?v=cjpj666w1oU</loc>
+    <lastmod>2026-05-31T13:02:24+00:00</lastmod>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://cypherdelisi70.github.io/#story</loc>
-    <lastmod>2026-06-08</lastmod>
+    <loc>https://www.youtube.com/watch?v=xkEUGfB4c0k</loc>
+    <lastmod>2026-05-31T12:21:34+00:00</lastmod>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.youtube.com/watch?v=JINmf1OJ33U</loc>
+    <lastmod>2026-05-31T14:16:38+00:00</lastmod>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.youtube.com/watch?v=kOrUI1sdl1I</loc>
+    <lastmod>2026-06-01T14:22:32+00:00</lastmod>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.youtube.com/watch?v=JQw-qBDJAMg</loc>
+    <lastmod>2026-05-30T19:19:52+00:00</lastmod>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.youtube.com/watch?v=PYH7zYB7OsA</loc>
+    <lastmod>2026-05-31T10:03:55+00:00</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://cypherdelisi70.github.io/#agents</loc>
-    <lastmod>2026-06-08</lastmod>
+    <loc>https://www.youtube.com/watch?v=DlWCll9XUYE</loc>
+    <lastmod>2026-06-02T15:00:07+00:00</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://cypherdelisi70.github.io/#maps</loc>
-    <lastmod>2026-06-08</lastmod>
-    <priority>0.7</priority>
+    <loc>https://www.youtube.com/watch?v=HX-dblrudMs</loc>
+    <lastmod>2026-06-02T15:00:33+00:00</lastmod>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://cypherdelisi70.github.io/#contact</loc>
-    <lastmod>2026-06-08</lastmod>
-    <priority>0.6</priority>
+    <loc>https://www.youtube.com/watch?v=5XNuZ8L9rzQ</loc>
+    <lastmod>2026-06-02T15:00:57+00:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.youtube.com/watch?v=CpFC1WMMdiw</loc>
+    <lastmod>2026-05-31T18:10:36+00:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.youtube.com/shorts/H55MhsVLQD0</loc>
+    <lastmod>2026-06-06T17:18:07+00:00</lastmod>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://www.youtube.com/shorts/kAFlHygc62I</loc>
+    <lastmod>2026-06-06T18:57:04+00:00</lastmod>
+    <priority>0.75</priority>
   </url>
 </urlset>
