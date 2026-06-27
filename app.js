@@ -312,6 +312,36 @@ const QUIZ_QUESTIONS = [
     correct: 1,
     explain: 'Radiant en yüksek rekabet rankıdır. Üstünde sadece “Top 500” listesi vardır.',
   },
+  {
+    q: 'Reyna’nın 4 yeteneği hangisinde yok?',
+    opts: ['Leer', 'Devour', 'Dismiss', 'Viper’s Pit'],
+    correct: 3,
+    explain: 'Viper’s Pit Viper’ın ultimate’ıdır. Reyna’nın 4’ü: Leer, Devour, Dismiss, Empress.',
+  },
+  {
+    q: 'Empress ultimate’ı aktifken hangisi olmaz?',
+    opts: ['Ateş hızı artar', 'Reload hızlanır', 'Can yenilenir', 'Ekipman düşmez'],
+    correct: 2,
+    explain: 'Empress ateş hızı, reload ve ekipman bonusu verir. Can yenileme yok, o Devour’un işi.',
+  },
+  {
+    q: 'Reyna hangi silahla en etkilidir?',
+    opts: ['Operator', 'Vandal', 'Shorty', 'Bulldog'],
+    correct: 1,
+    explain: 'Vandal tek atış yüksek hasar verir, Reyna’nın agresif oyun tarzına en uygun silah.',
+  },
+  {
+    q: 'Reyna soul orb kaç saniye sonra kaybolur?',
+    opts: ['1 sn', '3 sn', '5 sn', '10 sn'],
+    correct: 1,
+    explain: 'Soul orb’lar 3 saniye sonra kaybolur. Hızlı toplamak gerekir.',
+  },
+  {
+    q: 'Reyna hangi item satın alabilir?',
+    opts: ['Heavy Armor', 'Light Armor', 'Full Shield', 'Tüfek'],
+    correct: 1,
+    explain: 'Reyna Light Armor alır, çünkü self-sufficient oynar ve Devour ile canını yeniler.',
+  },
 ];
   {
     q: 'Bind haritasında kaç tane teleporter vardır?',
