@@ -6,7 +6,7 @@ const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
 const YT_API_KEY = 'AIzaSyAp-uhzfrhh0HzuxpiPbp5GztL2blxI2fM';
-const CHANNEL_ID = 'UCnMngge08vtea22mh38D7lg';
+const CHANNEL_ID = 'UCTulhRXIvug-D26PMpiXidw';
 
 const state = {
   sort: 'views',
@@ -253,11 +253,66 @@ $$('.cat-card').forEach(card => {
 // === QUIZ ===
 const QUIZ_QUESTIONS = [
   {
-    q: 'Cypher’ın kiti (ability) hangisi değildir?',
-    opts: ['Spycam', 'Tripwire', 'Viper’s Pit', 'Cyber Cage'],
+    q: 'Reyna hangi roldedir?',
+    opts: ['Sentinel', 'Controller', 'Duelist', 'Initiator'],
     correct: 2,
-    explain: 'Viper’s Pit Viper’ın ultimate’ıdır, Cypher’ın değil.',
+    explain: 'Reyna bir Duelist’tir — agresif giriş ve tek başına kill alma uzmanı.',
   },
+  {
+    q: 'Reyna’nın Dismiss yeteneği ne yapar?',
+    opts: ['Can yeniler', 'Görünmez olur', 'Flash atar', 'Smoke atar'],
+    correct: 1,
+    explain: 'Dismiss, soul orb kullanarak kısa süreliğine görünmez olmayı sağlar.',
+  },
+  {
+    q: 'Reyna’nın ultimate’ı Empress kaç saniye sürer?',
+    opts: ['20 sn', '30 sn', '40 sn', '60 sn'],
+    correct: 1,
+    explain: 'Empress 30 saniye sürer. Bu sürede ateş hızı, reload ve ekipman bonusu alır.',
+  },
+  {
+    q: 'Reyna soul orb’larını nereden toplar?',
+    opts: ['Spike patlatınca', 'Ölen düşmanlardan', 'Site tutunca', 'Kutu alınca'],
+    correct: 1,
+    explain: 'Soul orb’lar ölen düşmanlardan çıkar, 3 saniye içinde toplanmalıdır.',
+  },
+  {
+    q: 'Reyna hangi ülkedendir?',
+    opts: ['Brezilya', 'Meksika', 'İspanya', 'Rusya'],
+    correct: 1,
+    explain: 'Reyna Meksika’dandır. Karakter tasarımı ve seslendirme Meksika kökenlidir.',
+  },
+  {
+    q: 'Leer (Reyna C) hangi amaçla kullanılır?',
+    opts: ['Hasar vermek', 'Göz engellemek', 'Can yenilemek', 'Hızlanmak'],
+    correct: 1,
+    explain: 'Leer, bakan oyuncuyu “yakın görür” gibi yapar — kör etkisi verir.',
+  },
+  {
+    q: 'Devour kaç HP’ye kadar iyileştirir?',
+    opts: ['50', '75', '100', '150'],
+    correct: 2,
+    explain: 'Devour, soul orb başına anlık iyileştirir, 100 HP üst sınırı vardır.',
+  },
+  {
+    q: 'Reyna hangi ajan türüne karşı güçlüdür?',
+    opts: ['Tank', 'Yavaş nişancı', 'Yakın dövüş', 'Ağır silah'],
+    correct: 2,
+    explain: 'Reyna yakın-orta mesafe duel’de en güçlüdür. Uzak mesafe silahlarına karşı zayıftır.',
+  },
+  {
+    q: 'Bir round kaç saniye sürer?',
+    opts: ['60', '90', '100', '120'],
+    correct: 2,
+    explain: 'Standart round süresi 100 saniyedir.',
+  },
+  {
+    q: 'Valorant’ın en yüksek rankı hangisidir?',
+    opts: ['Immortal', 'Radiant', 'Champion', 'Global'],
+    correct: 1,
+    explain: 'Radiant en yüksek rekabet rankıdır. Üstünde sadece “Top 500” listesi vardır.',
+  },
+];
   {
     q: 'Bind haritasında kaç tane teleporter vardır?',
     opts: ['1', '2', '3', '4'],
