@@ -1,5 +1,5 @@
 // ============================================
-//  CYPHER.DELISI.70 — SITE CONTROLLER (Clean Theme)
+//  REYNX70 — SITE CONTROLLER
 // ============================================
 
 const $ = (sel) => document.querySelector(sel);
@@ -9,9 +9,10 @@ const YT_API_KEY = 'AIzaSyAp-uhzfrhh0HzuxpiPbp5GztL2blxI2fM';
 const CHANNEL_ID = 'UCTulhRXIvug-D26PMpiXidw';
 
 const state = {
-  sort: 'views',
+  sort: 'date',
   query: '',
   liveViews: false,
+  quizExpanded: true, // quiz paneli otomatik açık
 };
 
 // === HELPERS ===
@@ -36,7 +37,7 @@ function formatTime(d = new Date()) {
   return d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 }
 
-// === RENDER ===
+// === VIDEOS RENDER ===
 function getSortedVideos() {
   let v = [...VIDEOS];
   if (state.query) {
@@ -55,21 +56,12 @@ function render() {
   const grid = $('#videoGrid');
   const empty = $('#emptyState');
   const list = getSortedVideos();
-
-  if (list.length === 0) {
-    grid.innerHTML = '';
-    empty.hidden = false;
-    return;
-  }
+  if (list.length === 0) { grid.innerHTML = ''; empty.hidden = false; return; }
   empty.hidden = true;
-
   grid.innerHTML = list.map((v, i) => {
     const rank = i + 1;
     let rankBadge = '';
     if (state.sort === 'views' && rank === 1) rankBadge = `<span class="video-rank">★ #1</span>`;
-    else if (state.sort === 'views' && rank === 2) rankBadge = `<span class="video-rank silver">#2</span>`;
-    else if (state.sort === 'views' && rank === 3) rankBadge = `<span class="video-rank bronze">#3</span>`;
-
     return `
       <a class="video-card" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">
         <div class="video-thumb">
@@ -94,13 +86,13 @@ function render() {
 
 function updateMeta() {
   const totalViews = VIDEOS.reduce((s, v) => s + (v.views || 0), 0);
-  const subs = state.channelSubs || 9;
   animateNumber($('#heroVideoCount'), VIDEOS.length);
-  animateNumber($('#heroViewCount'), totalViews, formatViews);
+  animateNumber($('#heroViewCount'), totalViews);
+  const subs = state.channelSubs || 3;
   animateNumber($('#heroSubCount'), subs);
 }
 
-function animateNumber(el, target, formatter) {
+function animateNumber(el, target) {
   if (!el) return;
   const dur = 1500;
   const start = performance.now();
@@ -108,31 +100,22 @@ function animateNumber(el, target, formatter) {
     const t = Math.min(1, (now - start) / dur);
     const eased = 1 - Math.pow(1 - t, 3);
     const val = Math.floor(target * eased);
-    el.textContent = formatter ? formatter(val) : val.toLocaleString('tr-TR');
+    el.textContent = val.toLocaleString('tr-TR');
     if (t < 1) requestAnimationFrame(tick);
-    else el.textContent = formatter ? formatter(target) : target.toLocaleString('tr-TR');
+    else el.textContent = target.toLocaleString('tr-TR');
   }
   requestAnimationFrame(tick);
 }
 
 function updateHeroPhotos() {
-  // Top 2 videoları hero'da göster
   const top = [...VIDEOS].sort((a, b) => b.views - a.views).slice(0, 2);
   if (top[0]) {
     const img1 = document.querySelector('#heroPhoto1 img');
-    const href1 = $('#heroPhoto1');
-    const badge1 = $('#photoBadge1');
     if (img1) img1.src = maxThumbUrl(top[0].id);
-    if (href1) href1.href = `https://www.youtube.com/watch?v=${top[0].id}`;
-    if (badge1) badge1.textContent = `🔥 ${formatViews(top[0].views)}`;
   }
   if (top[1]) {
     const img2 = document.querySelector('#heroPhoto2 img');
-    const href2 = $('#heroPhoto2');
-    const badge2 = $('#photoBadge2');
     if (img2) img2.src = maxThumbUrl(top[1].id);
-    if (href2) href2.href = `https://www.youtube.com/watch?v=${top[1].id}`;
-    if (badge2) badge2.textContent = `🔥 ${formatViews(top[1].views)}`;
   }
 }
 
@@ -140,7 +123,6 @@ function updateHeroPhotos() {
 async function fetchLiveViews() {
   const ids = VIDEOS.map(v => v.id);
   const url = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${ids.join(',')}&key=${YT_API_KEY}`;
-
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error('API ' + res.status);
@@ -226,206 +208,97 @@ $('#menuToggle')?.addEventListener('click', () => {
   nav.hidden = open;
 });
 
-// Category card click → filter
-$$('.cat-card').forEach(card => {
-  card.addEventListener('click', (e) => {
-    e.preventDefault();
-    const cat = card.dataset.cat;
-    if (cat === 'taktik') state.query = 'taktik';
-    else if (cat === 'edit') state.query = 'edit';
-    else if (cat === 'ajan') state.query = 'phoenix|sage|viper|deadlock|raze|cypher|clove';
-    else if (cat === 'shorts') state.query = '';
-    else if (cat === 'harita') state.query = 'haven|split|ascent|bind';
-    else if (cat === 'komboluk') state.query = '';
-    if (state.query) {
-      const input = $('#searchInput');
-      if (input) input.value = state.query;
-    } else {
-      const input = $('#searchInput');
-      if (input) input.value = '';
-      state.query = '';
-    }
-    render();
-    document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' });
-  });
-});
-
-// === QUIZ ===
+// === QUIZ: 15 soru, detaylı, accordion-style ===
 const QUIZ_QUESTIONS = [
   {
     q: 'Reyna hangi roldedir?',
     opts: ['Sentinel', 'Controller', 'Duelist', 'Initiator'],
     correct: 2,
-    explain: 'Reyna bir Duelist’tir — agresif giriş ve tek başına kill alma uzmanı.',
+    detail: 'Reyna, Meksika kökenli bir Duelist (Düellocu) ajanıdır. Riot Games tarafından 2020 yılında Valorant\'ın ilk ajanlarından biri olarak piyasaya sürülmüştür. Duelist rolü, takım için ön cephede savaşan, kill almaya odaklanan ajanları kapsar. Reyna\'yı diğer Duelist\'lerden (Jett, Phoenix, Yoru) ayıran en büyük özellik, öldürdüğü düşmanlardan soul orb toplayarak kendini iyileştirmesi veya görünmez olabilmesidir.',
   },
   {
-    q: 'Reyna’nın Dismiss yeteneği ne yapar?',
+    q: 'Reyna\'nın Dismiss yeteneği ne yapar?',
     opts: ['Can yeniler', 'Görünmez olur', 'Flash atar', 'Smoke atar'],
     correct: 1,
-    explain: 'Dismiss, soul orb kullanarak kısa süreliğine görünmez olmayı sağlar.',
+    detail: 'Dismiss, Reyna\'nın E (signature) yeteneğidir. Bir düşmanı öldürdüğünde çıkan soul orb\'u kullanarak kısa süreliğine (3 saniye) görünmez olur. Görünmezlik sırasında silah ateşleyemez ama hareket edebilir. Bu yetenek özellikle save round\'larda (kaybedilmek üzereyken) veya takım savaşından kaçarken çok işe yarar.',
   },
   {
-    q: 'Reyna’nın ultimate’ı Empress kaç saniye sürer?',
+    q: 'Reyna\'nın ultimate\'ı Empress kaç saniye sürer?',
     opts: ['20 sn', '30 sn', '40 sn', '60 sn'],
     correct: 1,
-    explain: 'Empress 30 saniye sürer. Bu sürede ateş hızı, reload ve ekipman bonusu alır.',
+    detail: 'Empress 30 saniye boyunca aktif kalır. Bu süre boyunca Reyna: ateş hızı artar, reload hızı artar, ekipman (mermi) düşmez ve minimap\'te düşmanlara görünmez olur. 7 ultimate puan\'ı gerektirir. Genelde pistol round dışındaki kritik roundlarda saklanmalıdır.',
   },
   {
-    q: 'Reyna soul orb’larını nereden toplar?',
+    q: 'Reyna soul orb\'larını nereden toplar?',
     opts: ['Spike patlatınca', 'Ölen düşmanlardan', 'Site tutunca', 'Kutu alınca'],
     correct: 1,
-    explain: 'Soul orb’lar ölen düşmanlardan çıkar, 3 saniye içinde toplanmalıdır.',
+    detail: 'Soul orb\'lar sadece Reyna\'nın bizzat öldürdüğü düşmanlardan çıkar. 3 saniye içinde toplanmazsa kaybolur. Devour (Q) için 100 HP üst sınırı vardır, Dismiss (E) için üst sınır yoktur. Takım arkadaşlarının öldürdüğü düşmanlardan orb çıkmaz.',
   },
   {
     q: 'Reyna hangi ülkedendir?',
     opts: ['Brezilya', 'Meksika', 'İspanya', 'Rusya'],
     correct: 1,
-    explain: 'Reyna Meksika’dandır. Karakter tasarımı ve seslendirme Meksika kökenlidir.',
+    detail: 'Reyna, Valorant\'ın lore\'unda Meksika\'dan gelen bir ajandır. Karakterin görünüşü, seslendirmesi ve arka plan hikayesi Meksika kültüründen esinlenmiştir. Oyun içi voice line\'larında da İspanyolca kelimeler kullanır ("Kaçış yok", "Bitir onu" gibi).',
   },
   {
     q: 'Leer (Reyna C) hangi amaçla kullanılır?',
     opts: ['Hasar vermek', 'Göz engellemek', 'Can yenilemek', 'Hızlanmak'],
     correct: 1,
-    explain: 'Leer, bakan oyuncuyu “yakın görür” gibi yapar — kör etkisi verir.',
+    detail: 'Leer, Reyna\'nın C (basic) yeteneğidir. 250 kredi karşılığında bir göz küresi atar. Bu göz küresine bakan oyuncular yakın mesafeden baktıklarını sanır, bu da onları yavaşlatır ve görüş açılarını kısıtlar. 1.6 saniye etki süresi vardır. Site girişlerinde veya köşe peek\'lerinde kullanmak için idealdir.',
   },
   {
-    q: 'Devour kaç HP’ye kadar iyileştirir?',
+    q: 'Devour kaç HP\'ye kadar iyileştirir?',
     opts: ['50', '75', '100', '150'],
     correct: 2,
-    explain: 'Devour, soul orb başına anlık iyileştirir, 100 HP üst sınırı vardır.',
+    detail: 'Devour anlık 100 HP iyileştirir. Ancak 100 HP üzerine çıkamazsın. Bir round\'da birden fazla soul orb toplarsan, her biri +100 HP anlamına gelmez, sadece 100 HP üst sınırına kadar doldurur. Yani 50 HP\'de iken 50 HP iyileştirirsin, 80 HP\'de isen sadece 20 HP.',
   },
   {
-    q: 'Reyna hangi ajan türüne karşı güçlüdür?',
+    q: 'Reyna hangi tür ajana karşı güçlüdür?',
     opts: ['Tank', 'Yavaş nişancı', 'Yakın dövüş', 'Ağır silah'],
     correct: 2,
-    explain: 'Reyna yakın-orta mesafe duel’de en güçlüdür. Uzak mesafe silahlarına karşı zayıftır.',
+    detail: 'Reyna yakın-orta mesafe duel\'lerde son derece güçlüdür. Özellikle Vandal veya Phantom ile yapılan headshot\'larda çok etkilidir. Açık alanlarda ve uzun mesafelerde ise Operator, Marshal gibi silahlar Reyna\'ya karşı avantaj sağlar. Bu yüzden dar koridorlu haritalar (Split, Bind, Ascent) Reyna için idealdir.',
   },
   {
-    q: 'Bir round kaç saniye sürer?',
-    opts: ['60', '90', '100', '120'],
-    correct: 2,
-    explain: 'Standart round süresi 100 saniyedir.',
-  },
-  {
-    q: 'Valorant’ın en yüksek rankı hangisidir?',
-    opts: ['Immortal', 'Radiant', 'Champion', 'Global'],
-    correct: 1,
-    explain: 'Radiant en yüksek rekabet rankıdır. Üstünde sadece “Top 500” listesi vardır.',
-  },
-  {
-    q: 'Reyna’nın 4 yeteneği hangisinde yok?',
-    opts: ['Leer', 'Devour', 'Dismiss', 'Viper’s Pit'],
+    q: 'Reyna\'nın 4 yeteneği hangisinde yok?',
+    opts: ['Leer', 'Devour', 'Dismiss', 'Viper\'s Pit'],
     correct: 3,
-    explain: 'Viper’s Pit Viper’ın ultimate’ıdır. Reyna’nın 4’ü: Leer, Devour, Dismiss, Empress.',
+    detail: 'Viper\'s Pit Viper\'ın ultimate\'ıdır (büyük alan hasar + görüş engelleme). Reyna\'nın 4 yeteneği şunlardır: Leer (C, göz engelleme), Devour (Q, can yenileme), Dismiss (E, görünmezlik), Empress (X, ultimate). Reyna\'nın hiçbir ability\'si alan hasarı vermez.',
   },
   {
-    q: 'Empress ultimate’ı aktifken hangisi olmaz?',
-    opts: ['Ateş hızı artar', 'Reload hızlanır', 'Can yenilenir', 'Ekipman düşmez'],
+    q: 'Empress ultimate\'ı aktifken hangisi olmaz?',
+    opts: ['Ateş hızı artar', 'Reload hızlanır', 'Can yenileme olur', 'Ekipman düşmez'],
     correct: 2,
-    explain: 'Empress ateş hızı, reload ve ekipman bonusu verir. Can yenileme yok, o Devour’un işi.',
+    detail: 'Empress ateş hızı, reload hızı ve ekipman koruma sağlar ama can yenileme YAPMAZ. Can yenileme Devour\'un işidir. Yani Empress kullanırken öldüğünüzde soul orb toplayıp Devour ile iyileşebilirsiniz, ama Empress\'in kendisi can yenilemez.',
   },
   {
     q: 'Reyna hangi silahla en etkilidir?',
     opts: ['Operator', 'Vandal', 'Shorty', 'Bulldog'],
     correct: 1,
-    explain: 'Vandal tek atış yüksek hasar verir, Reyna’nın agresif oyun tarzına en uygun silah.',
+    detail: 'Vandal tek atışta 160 hasar verir (headshot\'ta tek atışta öldürür). Reyna\'nın agresif oyun tarzına en uygun silah budur çünkü tek atış potansiyeli vardır. Phantom da iyi bir alternatiftir ama body shot\'larda daha güvenlidir. Operator ise çok yavaş ve dar açılarda etkilidir, Reyna\'nın mobil oyun tarzına uymaz.',
   },
   {
     q: 'Reyna soul orb kaç saniye sonra kaybolur?',
     opts: ['1 sn', '3 sn', '5 sn', '10 sn'],
     correct: 1,
-    explain: 'Soul orb’lar 3 saniye sonra kaybolur. Hızlı toplamak gerekir.',
+    detail: 'Soul orb\'lar ölümden sonra 3 saniye boyunca yerde kalır. Bu süre çok kısadır, çünkü takım savaşında 3 saniye içinde ya toplarsın ya da düşman orb\'u kapsa bile işe yaramaz (sadece Reyna kullanabilir). Hızlı refleksler ve pozisyon bilgisi gerektirir.',
+  },
+  {
+    q: 'Reyna en zayıf olduğu harita türü?',
+    opts: ['Açık harita', 'Dar koridor', '3 siteli harita', 'Tema harita'],
+    correct: 0,
+    detail: 'Reyna açık haritalarda (özellikle Breeze, Fracture, Sunset) zayıftır çünkü uzun menzilli silahlar (Operator, Marshal) ve uzun görüş mesafesi onu dezavantajlı kılar. Dar koridorlu haritalarda (Split, Bind) ise çok güçlüdür çünkü peek\'lerde headshot alma şansı yüksektir.',
+  },
+  {
+    q: 'Reyna ne zaman Dismiss kullanmalı?',
+    opts: ['Her öldürmede', 'Kaybetmek üzereyken', 'Site tutarken', 'Pistol round\'da'],
+    correct: 1,
+    detail: 'Dismiss save round\'larda ve kritik anlarda kullanılmalıdır. Her öldürmede kullanmak soul orb israfıdır. Örnek: 1v1\'de düşman daha iyi konumdaysa, düşmanı öldürdüysen hemen Dismiss ile uzaklaş, save round yap. Ya da takım arkadaşların öldüyse ve sen son kaldıysan, son kill\'ini al ve Dismiss ile kaç.',
   },
   {
     q: 'Reyna hangi item satın alabilir?',
     opts: ['Heavy Armor', 'Light Armor', 'Full Shield', 'Tüfek'],
     correct: 1,
-    explain: 'Reyna Light Armor alır, çünkü self-sufficient oynar ve Devour ile canını yeniler.',
-  },
-];
-  {
-    q: 'Bind haritasında kaç tane teleporter vardır?',
-    opts: ['1', '2', '3', '4'],
-    correct: 1,
-    explain: 'Bind, iki taraf arasında hızlı geçiş sağlayan 2 teleporter’a sahiptir.',
-  },
-  {
-    q: 'Sage’in duvarı (Barrier Orb) kaç saniye dayanır?',
-    opts: ['20 sn', '30 sn', '40 sn', '60 sn'],
-    correct: 2,
-    explain: 'Barrier Orb, 40 saniye boyunca haritada kalır. 1:42 yükleyince hazır olur.',
-  },
-  {
-    q: 'Hangisi bir Sentinel (Gözcü) ajanı değildir?',
-    opts: ['Cypher', 'Killjoy', 'Jett', 'Chamber'],
-    correct: 2,
-    explain: 'Jett bir Duelist’tir, hız ve giriş uzmanı.',
-  },
-  {
-    q: 'Jett’in ultimate’ı Blade Storm’un kaç bıçağı vardır?',
-    opts: ['3', '5', '7', '10'],
-    correct: 1,
-    explain: 'Blade Storm 5 bıçak verir. Kill + right-click = tüm bıçaklar harcanır.',
-  },
-  {
-    q: 'Valorant kaç yılında piyasaya çıktı?',
-    opts: ['2018', '2019', '2020', '2021'],
-    correct: 2,
-    explain: 'Valorant, Riot Games tarafından 2 Haziran 2020’de piyasaya sürüldü.',
-  },
-  {
-    q: 'Hangisi bir Controller (Kontrol) ajanıdır?',
-    opts: ['Reyna', 'Omen', 'Yoru', 'Neon'],
-    correct: 1,
-    explain: 'Omen klasik bir Controller’dır. Dumanı haritayı kontrol altına alır.',
-  },
-  {
-    q: 'Ascent haritasının ana bölgesi hangi şehirden esinlenmiştir?',
-    opts: ['Roma', 'Venedik', 'İstanbul', 'Lizbon'],
-    correct: 1,
-    explain: 'Ascent, İtalyan mimarisi ve Venedik’ten esinlenmiştir.',
-  },
-  {
-    q: 'Hangisi Phoenix’in ultimate’ıdır?',
-    opts: ['Blaze', 'Curveball', 'Hot Hands', 'Run it Back'],
-    correct: 3,
-    explain: 'Run it Back, Phoenix’in ölümsüz pozisyon alma ultimate’ıdır.',
-  },
-  {
-    q: 'Cypher’ın Neural Theft ultimate’ı kaç saniyelik bilgi verir?',
-    opts: ['3 sn', '6 sn', '10 sn', '12 sn'],
-    correct: 1,
-    explain: 'Neural Theft, ölen düşmanın son 6 saniyelik harita bilgisini verir.',
-  },
-  {
-    q: 'Klasik (Classic) tabanca hangi ajanın ultimate’ıyla birlikte verilir?',
-    opts: ['Jett', 'Reyna', 'Chamber', 'Sovyet (hiçbiri)'],
-    correct: 3,
-    explain: 'Klasik başlangıç silahıdır, ultimate ile gelmez. Ancak Chamber’ın Headhunter ultimate’ı da tabanca tipidir.',
-  },
-  {
-    q: 'Hangisi Türk yapımı bir Valorant haritası değildir?',
-    opts: ['Bind', 'Haven', 'Split', 'Fracture'],
-    correct: 3,
-    explain: 'Fracture, ABD çölü temalıdır. Türk yapımı harita yoktur ama Türk oyuncu kitlesi çok büyüktür.',
-  },
-  {
-    q: 'Bir round toplam kaç saniye sürer?',
-    opts: ['60 sn', '90 sn', '100 sn', '120 sn'],
-    correct: 2,
-    explain: 'Standart round süresi 100 saniyedir. Spike patlaması 45 saniye içinde olmalıdır.',
-  },
-  {
-    q: 'Reyna’nın ultimate’ı Empress kaç saniye sürer?',
-    opts: ['20 sn', '30 sn', '40 sn', '60 sn'],
-    correct: 1,
-    explain: 'Empress 30 saniye sürer. Bu sürede Reyna daha hızlı ateş eder ve ölümsüz olur.',
-  },
-  {
-    q: 'Valorant’ta en yüksek rekabet rankı hangisidir?',
-    opts: ['Immortal', 'Radiant', 'Global Elite', 'Champion'],
-    correct: 1,
-    explain: 'Radiant en yüksek rekabet rankıdır. Üstünde sadece “Top 500” listesi vardır.',
+    detail: 'Reyna Light Armor (400 kredi) alır, çünkü zaten self-sufficient oynar. Devour ile canını yenileyebildiği için Heavy Armor (1000 kredi) gereksizdir. Bu sayede her round bir silah upgrade\'ine veya daha fazla ability\'ye para kalır. Light Armor\'un +25 HP bonusu yeterlidir çünkü zaten 100 HP üst sınırı var.',
   },
 ];
 
@@ -445,6 +318,7 @@ function initQuiz() {
   const $qNext = $('#qNext');
   const $qResult = $('#qResult');
   const $qBar = $('#quizBar');
+  const $qDetail = $('#qDetail');
 
   $qTotal.textContent = QUIZ_QUESTIONS.length;
 
@@ -453,8 +327,12 @@ function initQuiz() {
     $qNum.textContent = cur + 1;
     $qText.textContent = item.q;
     $qBar.style.width = ((cur) / QUIZ_QUESTIONS.length * 100) + '%';
+    $qDetail.innerHTML = ''; $qDetail.hidden = true;
     $qOpts.innerHTML = item.opts.map((o, i) =>
-      `<button class="quiz-opt" data-i="${i}"><span class="opt-letter">${'ABCD'[i]}</span><span>${o}</span></button>`
+      `<button class="quiz-opt" data-i="${i}">
+        <span class="opt-letter">${'ABCD'[i]}</span>
+        <span class="opt-text">${o}</span>
+      </button>`
     ).join('');
     $qFeedback.hidden = true;
     $qNext.hidden = true;
@@ -474,17 +352,17 @@ function initQuiz() {
       score++;
       buttons[i].classList.add('correct');
       $qFeedback.className = 'quiz-feedback ok';
-      $qFeedback.textContent = '✓ Doğru! ' + item.explain;
+      $qFeedback.innerHTML = `<strong>✓ Doğru!</strong> ${item.detail}`;
     } else {
       buttons[i].classList.add('wrong');
       buttons[item.correct].classList.add('correct');
       $qFeedback.className = 'quiz-feedback no';
-      $qFeedback.textContent = '✗ Yanlış. Doğru cevap: ' + item.opts[item.correct] + '. ' + item.explain;
+      $qFeedback.innerHTML = `<strong>✗ Yanlış.</strong> Doğru cevap: <em>${item.opts[item.correct]}</em>. ${item.detail}`;
     }
     $qFeedback.hidden = false;
     $qNext.hidden = cur === QUIZ_QUESTIONS.length - 1;
     if (cur === QUIZ_QUESTIONS.length - 1) {
-      setTimeout(showResult, 1200);
+      setTimeout(showResult, 1500);
     }
   }
 
@@ -492,12 +370,13 @@ function initQuiz() {
     $qOpts.innerHTML = '';
     $qText.hidden = true;
     $qFeedback.hidden = true;
+    $qDetail.hidden = true;
     $qNext.hidden = true;
     $qBar.style.width = '100%';
     $qResult.hidden = false;
     const pct = score / QUIZ_QUESTIONS.length;
     const emoji = pct === 1 ? '🏆' : pct >= 0.85 ? '⭐' : pct >= 0.7 ? '💎' : pct >= 0.5 ? '👍' : pct >= 0.3 ? '🤔' : '📚';
-    const title = pct === 1 ? 'Mükemmel! Tam 15/15, Radiant’sın sen!' :
+    const title = pct === 1 ? 'Mükemmel! Tam 15/15, Radiant\'sın sen!' :
                   pct >= 0.85 ? 'Muhteşem! Immortal adayısın.' :
                   pct >= 0.7 ? 'Çok iyi! Diamond+ seviyesi.' :
                   pct >= 0.5 ? 'Fena değil, Platinum seviyesi.' :
