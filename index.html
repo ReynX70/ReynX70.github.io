@@ -95,6 +95,9 @@
         <a href="#contact">İletişim</a>
       </nav>
       <a class="header-cta" href="#coaching">Koçluk Al →</a>
+      <button class="admin-btn" id="adminBtn" title="Admin Girişi">
+        🔒 Admin
+      </button>
       <button class="menu-toggle" id="menuToggle" aria-label="Menü">☰</button>
     </div>
     <nav class="mobile-nav" id="mobileNav" hidden>
@@ -163,7 +166,7 @@
           <div class="hs"><span class="hs-num" id="heroVideoCount">3</span><span class="hs-label">VİDEO</span></div>
           <div class="hs"><span class="hs-num" id="heroViewCount">0</span><span class="hs-label">İZLENME</span></div>
           <div class="hs"><span class="hs-num" id="heroSubCount">3</span><span class="hs-label">ABONE</span></div>
-          <div class="hs"><span class="hs-num" id="heroRank">DEMİR 2</span><span class="hs-label">ELO</span></div>
+          <div class="hs"><span class="hs-num" id="heroRank">YÜCELİK 2</span><span class="hs-label">ELO</span></div>
         </div>
       </div>
     </div>
@@ -210,7 +213,7 @@
         <div class="story-card"><div class="sc-num">3</div><div class="sc-label">Video</div></div>
         <div class="story-card"><div class="sc-num">3</div><div class="sc-label">Abone</div></div>
         <div class="story-card"><div class="sc-num">∞</div><div class="sc-label">Potansiyel</div></div>
-        <div class="story-card highlight"><div class="sc-num">D2</div><div class="sc-label">ELO</div></div>
+        <div class="story-card highlight"><div class="sc-num">Y2</div><div class="sc-label">ELO</div></div>
         <div class="story-card"><div class="sc-num">100%</div><div class="sc-label">Türkçe</div></div>
         <div class="story-card"><div class="sc-num">Reyna</div><div class="sc-label">Main Ajan</div></div>
       </div>
@@ -539,6 +542,7 @@
               <option>Immortal</option>
               <option>Radiant</option>
               <option>Unranked</option>
+              <option>Yücelik 2</option>
             </select>
           </div>
 
@@ -683,7 +687,7 @@
         <div class="am-facts">
           <div class="am-fact"><span class="amf-icon">🎮</span><div><strong>Valorant</strong><span>Ana oyun, 5+ yıl</span></div></div>
           <div class="am-fact"><span class="amf-icon">👁️</span><div><strong>Reyna Main</strong><span>Duelist, agresif</span></div></div>
-          <div class="am-fact"><span class="amf-icon">🏅</span><div><strong>Demir 2</strong><span>Şu anki rank</span></div></div>
+          <div class="am-fact"><span class="amf-icon">🏅</span><div><strong>Yücelik 2</strong><span>Şu anki rank</span></div></div>
           <div class="am-fact"><span class="amf-icon">🎬</span><div><strong>Editing</strong><span>CapCut · Premiere</span></div></div>
           <div class="am-fact"><span class="amf-icon">👥</span><div><strong>3 Abone</strong><span>Hedef: 100</span></div></div>
           <div class="am-fact"><span class="amf-icon">🇹🇷</span><div><strong>Türkçe</strong><span>%100 içerik</span></div></div>
@@ -772,5 +776,69 @@
 
   <script src="videos.js"></script>
   <script src="app.js"></script>
+
+  <!-- ADMIN LOGIN MODAL -->
+  <div class="modal" id="adminModal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-box">
+      <button class="modal-close" data-close aria-label="Kapat">×</button>
+      <div class="modal-icon">🔒</div>
+      <h3>Admin Girişi</h3>
+      <p>Siparişleri yönetmek için şifreni gir.</p>
+      <form id="adminLoginForm">
+        <div class="form-group">
+          <label for="adminPass">Şifre</label>
+          <input type="password" id="adminPass" placeholder="••••••••" required autocomplete="off" />
+          <span class="form-hint">İpucu: Kanal adının sadece ilk kelimesi + 70</span>
+        </div>
+        <button type="submit" class="btn-primary big">Giriş Yap</button>
+        <p class="form-error" id="adminError" hidden>Şifre yanlış!</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <div class="modal" id="adminPanel" hidden>
+    <div class="modal-backdrop" data-close-panel></div>
+    <div class="admin-panel-box">
+      <button class="modal-close" data-close-panel aria-label="Kapat">×</button>
+      <div class="admin-head">
+        <div>
+          <h2>👑 Admin Paneli</h2>
+          <p>Tüm siparişleri buradan yönet.</p>
+        </div>
+        <button class="btn-ghost-sm" id="logoutBtn">Çıkış Yap</button>
+      </div>
+
+      <div class="admin-stats">
+        <div class="admin-stat">
+          <span class="as-num" id="adminTotalOrders">0</span>
+          <span class="as-label">TOPLAM SİPARİŞ</span>
+        </div>
+        <div class="admin-stat">
+          <span class="as-num" id="adminTotalRevenue">₺0</span>
+          <span class="as-label">TOPLAM GELİR</span>
+        </div>
+        <div class="admin-stat">
+          <span class="as-num" id="adminUniqueDiscord">0</span>
+          <span class="as-label">DİSCORD</span>
+        </div>
+      </div>
+
+      <div class="admin-filters">
+        <button class="filter-btn active" data-filter="all">Tümü</button>
+        <button class="filter-btn" data-filter="Tek Ders">Tek Ders</button>
+        <button class="filter-btn" data-filter="Haftalık Program">Haftalık</button>
+        <button class="filter-btn" data-filter="Aylık VIP">Aylık VIP</button>
+        <button class="filter-btn" data-filter="Takım Antrenmanı">Takım</button>
+        <input type="text" id="adminSearch" placeholder="🔍 İsim veya Discord ara..." class="admin-search" />
+      </div>
+
+      <div class="admin-orders" id="adminOrders">
+        <!-- Siparişler buraya yüklenecek -->
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

@@ -588,6 +588,187 @@ function showOrderConfirmation(data) {
   document.getElementById('order')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+// === ADMIN SYSTEM ===
+const ADMIN_PASSWORD = 'reynx70'; // Şifre: reynx70
+const ADMIN_SESSION_KEY = 'reynx70_admin_session';
+
+function isAdminLoggedIn() {
+  return sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true';
+}
+
+function setAdminLoggedIn(val) {
+  if (val) sessionStorage.setItem(ADMIN_SESSION_KEY, 'true');
+  else sessionStorage.removeItem(ADMIN_SESSION_KEY);
+}
+
+function openModal(id) {
+  const m = $('#' + id);
+  if (m) { m.hidden = false; document.body.style.overflow = 'hidden'; }
+}
+function closeModal(id) {
+  const m = $('#' + id);
+  if (m) { m.hidden = true; document.body.style.overflow = ''; }
+}
+
+let adminFilter = 'all';
+let adminSearch = '';
+
+function renderAdminOrders() {
+  const wrap = $('#adminOrders');
+  if (!wrap) return;
+  let orders = getOrders();
+  // Filter
+  if (adminFilter !== 'all') orders = orders.filter(o => o.package === adminFilter);
+  if (adminSearch) {
+    const q = adminSearch.toLowerCase();
+    orders = orders.filter(o =>
+      (o.name || '').toLowerCase().includes(q) ||
+      (o.discord || '').toLowerCase().includes(q)
+    );
+  }
+  if (orders.length === 0) {
+    wrap.innerHTML = `
+      <div class="admin-empty">
+        <div class="empty-emoji">📭</div>
+        <p><strong>Henüz sipariş yok.</strong></p>
+        <p>Yeni siparişler buraya düşecek.</p>
+      </div>
+    `;
+  } else {
+    // En yeni üstte
+    const sorted = [...orders].reverse();
+    wrap.innerHTML = sorted.map((o, i) => {
+      const initial = (o.name || '?').trim()[0].toUpperCase();
+      return `
+        <div class="admin-order-card">
+          <div class="admin-order-avatar">${initial}</div>
+          <div class="admin-order-info">
+            <div class="admin-order-name">${escapeHtml(o.name)}</div>
+            <div class="admin-order-meta">
+              <span>🎂 ${o.age} yaş</span>
+              <span>💬 ${escapeHtml(o.discord)}</span>
+              ${o.email ? `<span>📧 ${escapeHtml(o.email)}</span>` : ''}
+              ${o.rank ? `<span>🏅 ${escapeHtml(o.rank)}</span>` : ''}
+              <span>📅 ${formatDate(o.timestamp)} ${formatTime(new Date(o.timestamp))}</span>
+            </div>
+            ${o.goal ? `<div style="font-size:0.82rem;color:var(--text-dim);margin-top:4px;font-style:italic;">"${escapeHtml(o.goal)}"</div>` : ''}
+          </div>
+          <div class="admin-order-actions">
+            <span class="admin-order-pkg">${escapeHtml(o.package)}</span>
+            <span class="admin-order-price">${PACKAGE_PRICES[o.package] || '—'}</span>
+            <button class="admin-order-del" data-idx="${getOrders().length - 1 - (adminFilter !== 'all' || adminSearch ? orders.indexOf(o) : i)}">🗑️ Sil</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    // Sil butonlarına event
+    wrap.querySelectorAll('.admin-order-del').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = parseInt(btn.dataset.idx);
+        if (!isNaN(idx) && confirm('Bu siparişi silmek istediğine emin misin?')) {
+          const all = getOrders();
+          all.splice(idx, 1);
+          saveOrders(all);
+          renderAdminOrders();
+          renderBuyers();
+          updateAdminStats();
+          flashStatus('Sipariş silindi', 'ok');
+        }
+      });
+    });
+  }
+  updateAdminStats();
+}
+
+const PACKAGE_PRICES = {
+  'Tek Ders': '₺199',
+  'Haftalık Program': '₺599',
+  'Aylık VIP': '₺1299',
+  'Takım Antrenmanı': '₺999',
+};
+
+function updateAdminStats() {
+  const orders = getOrders();
+  const total = orders.length;
+  let revenue = 0;
+  orders.forEach(o => {
+    const priceStr = PACKAGE_PRICES[o.package] || '';
+    const n = parseInt(priceStr.replace(/[^\d]/g, ''));
+    revenue += n;
+  });
+  const discords = new Set(orders.map(o => o.discord).filter(Boolean));
+  const $total = $('#adminTotalOrders');
+  const $rev = $('#adminTotalRevenue');
+  const $disc = $('#adminUniqueDiscord');
+  if ($total) $total ? $total.textContent = total : null;
+  if ($total) $total.textContent = total;
+  if ($rev) $rev.textContent = '₺' + revenue.toLocaleString('tr-TR');
+  if ($disc) $disc.textContent = discords.size;
+}
+
+function initAdmin() {
+  // Admin butonu
+  $('#adminBtn')?.addEventListener('click', () => {
+    if (isAdminLoggedIn()) {
+      openAdminPanel();
+    } else {
+      openModal('adminModal');
+      setTimeout(() => $('#adminPass')?.focus(), 100);
+    }
+  });
+
+  // Modal close
+  $$('[data-close]').forEach(el => el.addEventListener('click', () => closeModal('adminModal')));
+  $$('[data-close-panel]').forEach(el => el.addEventListener('click', () => closeModal('adminPanel')));
+
+  // Login form
+  $('#adminLoginForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const pass = $('#adminPass').value;
+    if (pass === ADMIN_PASSWORD) {
+      setAdminLoggedIn(true);
+      closeModal('adminModal');
+      $('#adminPass').value = '';
+      $('#adminError').hidden = true;
+      openAdminPanel();
+      flashStatus('Admin girişi başarılı ✓', 'ok');
+    } else {
+      $('#adminError').hidden = false;
+      $('#adminPass').value = '';
+      $('#adminPass').focus();
+    }
+  });
+
+  // Logout
+  $('#logoutBtn')?.addEventListener('click', () => {
+    setAdminLoggedIn(false);
+    closeModal('adminPanel');
+    flashStatus('Çıkış yapıldı', 'ok');
+  });
+
+  // Filter buttons
+  $$('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      adminFilter = btn.dataset.filter;
+      renderAdminOrders();
+    });
+  });
+
+  // Search
+  $('#adminSearch')?.addEventListener('input', (e) => {
+    adminSearch = e.target.value;
+    renderAdminOrders();
+  });
+}
+
+function openAdminPanel() {
+  renderAdminOrders();
+  openModal('adminPanel');
+}
+
 // === INIT ===
 $('#year').textContent = new Date().getFullYear();
 render();
@@ -597,6 +778,7 @@ initQuiz();
 initOrderForm();
 renderBuyers();
 updateOrderSummary();
+initAdmin();
 
 // Auto-fetch on load
 setTimeout(() => {
