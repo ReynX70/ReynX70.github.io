@@ -491,23 +491,23 @@
       </div>
 
       <div class="order-grid">
-        <form class="order-form" id="orderForm">
+        <form class="order-form" id="orderForm" novalidate>
           <div class="form-row">
             <div class="form-group">
               <label for="name">İsim <span class="required">*</span></label>
-              <input type="text" id="name" name="name" placeholder="Adın Soyadın" required minlength="2" maxlength="50" />
+              <input type="text" id="name" name="name" placeholder="Adın Soyadın" />
               <span class="form-hint">Gerçek ismini yaz, sertifika için gerekli.</span>
             </div>
             <div class="form-group">
               <label for="age">Yaş <span class="required">*</span></label>
-              <input type="number" id="age" name="age" placeholder="18" min="13" max="99" required />
+              <input type="number" id="age" name="age" placeholder="18" />
               <span class="form-hint">13 yaş üstü (Valorant yaş sınırı).</span>
             </div>
           </div>
 
           <div class="form-group">
             <label for="discord">Discord kullanıcı adı <span class="required">*</span></label>
-            <input type="text" id="discord" name="discord" placeholder="kullaniciadin#0000 veya @kullaniciadin" required minlength="3" maxlength="100" />
+            <input type="text" id="discord" name="discord" placeholder="kullaniciadin#0000 veya @kullaniciadin" />
             <span class="form-hint">İletişim için zorunlu. Dersler Discord üzerinden yapılır.</span>
           </div>
 
@@ -519,7 +519,7 @@
 
           <div class="form-group">
             <label for="package">Paket <span class="required">*</span></label>
-            <select id="package" name="package" required>
+            <select id="package" name="package">
               <option value="">— Paket seç —</option>
               <option value="Tek Ders">Tek Ders — ₺199</option>
               <option value="Haftalık Program">Haftalık Program — ₺599 (En Popüler)</option>
@@ -554,14 +554,14 @@
 
           <div class="form-group">
             <label class="checkbox-label">
-              <input type="checkbox" id="consent" required />
+              <input type="checkbox" id="consent" />
               <span>18 yaşından büyüğüm veya veli iznim var. <span class="required">*</span></span>
             </label>
           </div>
 
           <div class="form-group">
             <label class="checkbox-label">
-              <input type="checkbox" id="terms" required />
+              <input type="checkbox" id="terms" />
               <span><a href="#faq">Kullanım koşullarını</a> okudum, kabul ediyorum. <span class="required">*</span></span>
             </label>
           </div>

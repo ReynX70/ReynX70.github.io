@@ -417,13 +417,25 @@ function saveOrders(orders) {
 
 function validateOrder(data) {
   const errors = {};
-  if (!data.name || data.name.trim().length < 2) errors.name = 'İsim en az 2 karakter olmalı';
+  if (!data.name || data.name.trim().length < 2) {
+    errors.name = 'İsim en az 2 karakter olmalı';
+  } else if (data.name.trim().length > 50) {
+    errors.name = 'İsim en fazla 50 karakter olabilir';
+  }
   const age = parseInt(data.age);
-  if (!data.age || isNaN(age)) errors.age = 'Yaş zorunlu';
-  else if (age < 13) errors.age = '13 yaşından küçük olamaz (Valorant yaş sınırı)';
-  else if (age > 99) errors.age = 'Geçerli bir yaş girin';
-  if (!data.discord || data.discord.trim().length < 3) errors.discord = 'Discord kullanıcı adı zorunlu';
-  if (!data.package) errors.package = 'Lütfen bir paket seç';
+  if (!data.age || data.age.trim() === '' || isNaN(age)) {
+    errors.age = 'Yaş zorunlu (sayı gerekli)';
+  } else if (age < 13) {
+    errors.age = '13 yaşından küçük olamaz (Valorant yaş sınırı)';
+  } else if (age > 99) {
+    errors.age = 'Geçerli bir yaş girin (99\'dan küçük)';
+  }
+  if (!data.discord || data.discord.trim().length < 3) {
+    errors.discord = 'Discord kullanıcı adı zorunlu (min 3 karakter)';
+  } else if (data.discord.trim().length > 100) {
+    errors.discord = 'Discord kullanıcı adı çok uzun';
+  }
+  if (!data.package) errors.package = 'Lütfen yukarıdan bir paket seç';
   return errors;
 }
 
@@ -524,35 +536,50 @@ function initOrderForm() {
   // Form submit
   $('#orderForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
+    e.stopPropagation();
     const form = e.target;
-    const data = {
-      name: form.name.value.trim(),
-      age: form.age.value.trim(),
-      discord: form.discord.value.trim(),
-      email: form.email.value.trim(),
-      package: form.package.value,
-      rank: form.rank.value,
-      goal: form.goal.value.trim(),
-      timestamp: new Date().toISOString(),
-    };
+    try {
+      const data = {
+        name: (form.name?.value || '').trim(),
+        age: (form.age?.value || '').trim(),
+        discord: (form.discord?.value || '').trim(),
+        email: (form.email?.value || '').trim(),
+        package: form.package?.value || '',
+        rank: form.rank?.value || '',
+        goal: (form.goal?.value || '').trim(),
+        timestamp: new Date().toISOString(),
+      };
 
-    // Clear old errors
-    $$('.order-form input, .order-form select, .order-form textarea').forEach(el => el.classList.remove('error'));
+      // Clear old errors
+      $$('.order-form input, .order-form select, .order-form textarea').forEach(el => el.classList.remove('error'));
 
-    const errors = validateOrder(data);
-    if (Object.keys(errors).length > 0) {
-      Object.keys(errors).forEach(key => {
-        const el = $('#' + key);
-        if (el) el.classList.add('error');
-      });
-      flashStatus('Lütfen formdaki hataları düzelt: ' + Object.values(errors).join(', '), 'err');
-      return;
-    }
+      const errors = validateOrder(data);
+      if (Object.keys(errors).length > 0) {
+        Object.keys(errors).forEach(key => {
+          const el = $('#' + key);
+          if (el) el.classList.add('error');
+        });
+        const firstErr = Object.keys(errors)[0];
+        const errEl = $('#' + firstErr);
+        if (errEl) errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        flashStatus('⚠️ ' + Object.values(errors)[0], 'err');
+        return;
+      }
 
-    // Kaydet
-    const orders = getOrders();
-    orders.push(data);
-    saveOrders(orders);
+      // Checkbox kontrolleri
+      if (!document.getElementById('consent')?.checked) {
+        flashStatus('⚠️ 18 yaş onayını işaretlemelisin', 'err');
+        return;
+      }
+      if (!document.getElementById('terms')?.checked) {
+        flashStatus('⚠️ Kullanım koşullarını kabul etmelisin', 'err');
+        return;
+      }
+
+      // Kaydet
+      const orders = getOrders();
+      orders.push(data);
+      saveOrders(orders);
 
     // Success
     flashStatus('Siparişin alındı! 24 saat içinde Discord üzerinden iletişime geçeceğim. ✓', 'ok');
