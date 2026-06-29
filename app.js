@@ -402,12 +402,201 @@ function initQuiz() {
   load();
 }
 
+// === COACHING ORDER SYSTEM ===
+const ORDERS_KEY = 'reynx70_orders';
+
+function getOrders() {
+  try {
+    return JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+  } catch { return []; }
+}
+
+function saveOrders(orders) {
+  localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+}
+
+function validateOrder(data) {
+  const errors = {};
+  if (!data.name || data.name.trim().length < 2) errors.name = 'İsim en az 2 karakter olmalı';
+  const age = parseInt(data.age);
+  if (!data.age || isNaN(age)) errors.age = 'Yaş zorunlu';
+  else if (age < 13) errors.age = '13 yaşından küçük olamaz (Valorant yaş sınırı)';
+  else if (age > 99) errors.age = 'Geçerli bir yaş girin';
+  if (!data.discord || data.discord.trim().length < 3) errors.discord = 'Discord kullanıcı adı zorunlu';
+  if (!data.package) errors.package = 'Lütfen bir paket seç';
+  return errors;
+}
+
+let selectedPackage = null;
+
+function selectPackage(name, price) {
+  selectedPackage = { name, price: parseInt(price) };
+  // Select dropdown güncelle
+  const sel = $('#package');
+  if (sel) sel.value = name;
+  updateOrderSummary();
+  // Form bölümüne scroll
+  document.getElementById('order')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updateOrderSummary() {
+  const sum = $('#orderSummary');
+  if (!sum) return;
+  if (!selectedPackage) {
+    sum.innerHTML = `
+      <h4>Sipariş Özeti</h4>
+      <div class="summary-empty">Henüz paket seçmedin. Yukarıdaki paketlerden birini seç.</div>
+    `;
+    return;
+  }
+  sum.innerHTML = `
+    <h4>Sipariş Özeti</h4>
+    <div class="summary-row">
+      <span>Paket:</span>
+      <strong>${selectedPackage.name}</strong>
+    </div>
+    <div class="summary-row">
+      <span>Ara Toplam:</span>
+      <strong>₺${selectedPackage.price}</strong>
+    </div>
+    <div class="summary-row total">
+      <span>Toplam:</span>
+      <strong>₺${selectedPackage.price}</strong>
+    </div>
+    <p style="font-size:0.78rem;color:var(--text-dim);margin-top:12px;text-align:center;">
+      💡 Ödeme bilgileri sipariş sonrası Discord üzerinden gönderilir.
+    </p>
+  `;
+}
+
+function renderBuyers() {
+  const grid = $('#buyersGrid');
+  if (!grid) return;
+  const orders = getOrders();
+  if (orders.length === 0) {
+    grid.innerHTML = `
+      <div class="buyer-empty">
+        <div class="empty-emoji">🌟</div>
+        <p><strong>Henüz koçluk alan yok.</strong></p>
+        <p>İlk koçluk öğrencisi sen ol! Yukarıdaki paketlerden birini seç.</p>
+      </div>
+    `;
+    return;
+  }
+  // En yeni siparişler üstte
+  const sorted = [...orders].reverse().slice(0, 8);
+  grid.innerHTML = sorted.map(o => {
+    const initial = (o.name || '?').trim()[0].toUpperCase();
+    return `
+      <div class="buyer-card">
+        <div class="buyer-avatar">${initial}</div>
+        <div class="buyer-info">
+          <div class="buyer-name">${escapeHtml(o.name)}</div>
+          <div class="buyer-meta">${o.age} yaş · ${escapeHtml(o.package)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function initOrderForm() {
+  // Paket butonları
+  $$('[data-pkg]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      selectPackage(btn.dataset.pkg, btn.dataset.price);
+    });
+  });
+
+  // Paket değişince özet güncelle
+  $('#package')?.addEventListener('change', (e) => {
+    const opt = e.target.selectedOptions[0];
+    if (opt && opt.value) {
+      const priceMatch = opt.textContent.match(/₺(\d+)/);
+      selectedPackage = {
+        name: opt.value,
+        price: priceMatch ? parseInt(priceMatch[1]) : 0,
+      };
+      updateOrderSummary();
+    }
+  });
+
+  // Form submit
+  $('#orderForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const data = {
+      name: form.name.value.trim(),
+      age: form.age.value.trim(),
+      discord: form.discord.value.trim(),
+      email: form.email.value.trim(),
+      package: form.package.value,
+      rank: form.rank.value,
+      goal: form.goal.value.trim(),
+      timestamp: new Date().toISOString(),
+    };
+
+    // Clear old errors
+    $$('.order-form input, .order-form select, .order-form textarea').forEach(el => el.classList.remove('error'));
+
+    const errors = validateOrder(data);
+    if (Object.keys(errors).length > 0) {
+      Object.keys(errors).forEach(key => {
+        const el = $('#' + key);
+        if (el) el.classList.add('error');
+      });
+      flashStatus('Lütfen formdaki hataları düzelt: ' + Object.values(errors).join(', '), 'err');
+      return;
+    }
+
+    // Kaydet
+    const orders = getOrders();
+    orders.push(data);
+    saveOrders(orders);
+
+    // Success
+    flashStatus('Siparişin alındı! 24 saat içinde Discord üzerinden iletişime geçeceğim. ✓', 'ok');
+
+    // Sipariş alındı sayfasına yönlendir
+    setTimeout(() => {
+      showOrderConfirmation(data);
+    }, 800);
+  });
+}
+
+function showOrderConfirmation(data) {
+  const form = $('#orderForm');
+  if (!form) return;
+  form.innerHTML = `
+    <div class="confirmation">
+      <div class="check-icon">✓</div>
+      <h2>Siparişin alındı!</h2>
+      <p class="conf-lead">Teşekkürler <strong>${escapeHtml(data.name)}</strong>. Siparişin başarıyla kaydedildi.</p>
+      <div class="conf-summary">
+        <div class="conf-row"><span>Paket:</span><strong>${escapeHtml(data.package)}</strong></div>
+        <div class="conf-row"><span>Discord:</span><strong>${escapeHtml(data.discord)}</strong></div>
+        <div class="conf-row"><span>Yaş:</span><strong>${data.age}</strong></div>
+        <div class="conf-row"><span>Tarih:</span><strong>${formatDate(data.timestamp)} ${formatTime(new Date(data.timestamp))}</strong></div>
+      </div>
+      <p class="conf-foot">
+        📩 <strong>24 saat içinde</strong> Discord üzerinden iletişime geçeceğim. Hesap: <strong>@reynx70e</strong>
+      </p>
+      <a class="btn-primary" href="https://discord.com" target="_blank" rel="noopener">💬 Discord'u Aç</a>
+    </div>
+  `;
+  renderBuyers();
+  document.getElementById('order')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 // === INIT ===
 $('#year').textContent = new Date().getFullYear();
 render();
 updateHeroPhotos();
 updateMeta();
 initQuiz();
+initOrderForm();
+renderBuyers();
+updateOrderSummary();
 
 // Auto-fetch on load
 setTimeout(() => {
