@@ -589,8 +589,9 @@ function showOrderConfirmation(data) {
 }
 
 // === ADMIN SYSTEM ===
-const ADMIN_PASSWORD = 'reynx70'; // Şifre: reynx70
+const ADMIN_PASSWORD = '151015ue'; // Şifre: 151015ue
 const ADMIN_SESSION_KEY = 'reynx70_admin_session';
+const ADMIN_NAME = 'ReynX70';
 
 function isAdminLoggedIn() {
   return sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true';
